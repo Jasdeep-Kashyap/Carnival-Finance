@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Dashboard — Dunes Carnival</title>
+  <meta name="description" content="Real-time revenue dashboard for Dunes Carnival. Live stall leaderboard and transaction feed." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+    .chart-wrap {
+      position: relative;
+      height: 200px;
+    }
+    .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--clr-success);
+      box-shadow: 0 0 8px var(--clr-success);
+      animation: pulse-dot 1.5s ease-in-out infinite;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-logo">
+        <span class="logo-dot"></span>
+        <span>Dunes Carnival</span>
+        <span style="font-size:0.75rem;color:var(--clr-text-3);margin-left:4px">Live Dashboard</span>
+      </div>
+      <div class="navbar-actions">
+        <span style="font-size:0.8rem;color:var(--clr-text-3)"><span class="live-dot"></span>Live</span>
+        <a href="/index.html" class="btn btn-ghost btn-sm">← Staff Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page" style="padding:1.5rem 0 4rem">
+    <div class="container">
+
+      <!-- STAT CARDS -->
+      <div class="stat-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Grand Total</div>
+          <div class="stat-value brand" id="stat-total">—</div>
+          <div class="stat-sub">tokens sold</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Revenue</div>
+          <div class="stat-value success" id="stat-revenue">—</div>
+          <div class="stat-sub">rupee value</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Transactions</div>
+          <div class="stat-value" id="stat-txns">—</div>
+          <div class="stat-sub">total charges</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Stalls</div>
+          <div class="stat-value" id="stat-stalls">—</div>
+          <div class="stat-sub">earning tokens</div>
+        </div>
+      </div>
+
+      <!-- MAIN GRID -->
+      <div class="dashboard-grid">
+
+        <!-- LEFT: Leaderboard + Chart -->
+        <div>
+          <!-- Leaderboard -->
+          <div class="card mb-2">
+            <div class="card-header">
+              <div class="card-icon">🏆</div>
+              <div><h3>Stall Leaderboard</h3><p style="font-size:0.8rem">Live rankings by tokens earned</p></div>
+            </div>
+            <div id="leaderboard-list">
+              <div style="text-align:center;padding:2rem;color:var(--clr-text-3)">Loading…</div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">📈</div>
+              <div><h3>Tokens Per Hour</h3><p style="font-size:0.8rem">Transaction volume over time</p></div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="hourly-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Recent Feed -->
+        <div class="card" style="position:sticky;top:76px">
+          <div class="card-header">
+            <div class="card-icon">⚡</div>
+            <div><h3>Live Feed</h3><p style="font-size:0.8rem">Most recent transactions</p></div>
+          </div>
+          <div id="feed-list" class="feed-list">
+            <div style="text-align:center;padding:2rem;color:var(--clr-text-3)">Waiting for data…</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/pages/dashboard.js"></script>
+</body>
+</html>

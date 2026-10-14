@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Dunes Carnival</title>
+  <meta name="description" content="Admin panel for Dunes Carnival — manage stalls, staff, ledger, exports." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+  <style>
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .admin-sidebar {
+      position: sticky;
+      top: 76px;
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--clr-text-3);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-family: var(--font);
+      width: 100%;
+      text-align: left;
+      transition: var(--transition);
+    }
+    .sidebar-link:hover { color: var(--clr-text); background: rgba(255,255,255,0.04); }
+    .sidebar-link.active { color: var(--clr-brand); background: rgba(255,149,0,0.1); }
+    .sidebar-divider { height: 1px; background: var(--clr-border); margin: 0.4rem 0; }
+    @media (max-width: 768px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar { position: static; flex-direction: row; flex-wrap: wrap; }
+    }
+    .filter-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      align-items: flex-end;
+    }
+    .filter-bar .form-group { margin-bottom: 0; }
+    .filter-bar .form-control { min-width: 140px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-logo">
+        <span class="logo-dot"></span>
+        <span>Dunes Carnival</span>
+      </div>
+      <div class="navbar-actions">
+        <span class="navbar-role">Admin</span>
+        <button class="btn btn-ghost btn-sm" id="signout-btn">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page" style="padding:1.5rem 0 4rem">
+    <div class="container">
+      <div class="admin-layout">
+
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+          <button class="sidebar-link active" data-section="stalls" id="nav-stalls">🏪 Stalls</button>
+          <button class="sidebar-link" data-section="staff" id="nav-staff">👥 Staff</button>
+          <div class="sidebar-divider"></div>
+          <button class="sidebar-link" data-section="ledger" id="nav-ledger">📒 Ledger</button>
+          <button class="sidebar-link" data-section="export" id="nav-export">📥 Export</button>
+          <div class="sidebar-divider"></div>
+          <button class="sidebar-link" data-section="settings" id="nav-settings">⚙️ Settings</button>
+        </div>
+
+        <!-- Content -->
+        <div id="admin-content">
+
+          <!-- ── STALLS ── -->
+          <div id="section-stalls">
+            <div class="flex justify-between items-center mb-3">
+              <h2>🏪 Stalls</h2>
+              <button class="btn btn-primary" id="add-stall-btn">+ Add Stall</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Stall Name</th>
+                    <th>Wallet ID</th>
+                    <th>Tokens Earned</th>
+                    <th>Assigned To</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="stalls-tbody">
+                  <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--clr-text-3)">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── STAFF ── -->
+          <div id="section-staff" class="hidden">
+            <div class="flex justify-between items-center mb-3">
+              <h2>👥 Staff</h2>
+              <button class="btn btn-primary" id="add-staff-btn">+ Invite Staff</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Display Name</th>
+                    <th>Role</th>
+                    <th>Stall</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="staff-tbody">
+                  <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--clr-text-3)">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── LEDGER ── -->
+          <div id="section-ledger" class="hidden">
+            <div class="flex justify-between items-center mb-2">
+              <h2>📒 Ledger</h2>
+            </div>
+            <!-- Filters -->
+            <div class="filter-bar card mb-2" style="padding:1rem">
+              <div class="form-group">
+                <label class="form-label">Kind</label>
+                <select class="form-control" id="filter-kind">
+                  <option value="">All</option>
+                  <option value="create">Create</option>
+                  <option value="top_up">Top Up</option>
+                  <option value="spend">Spend</option>
+                  <option value="refund">Refund</option>
+                  <option value="reverse">Reverse</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Stall</label>
+                <select class="form-control" id="filter-stall">
+                  <option value="">All Stalls</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">From</label>
+                <input class="form-control" id="filter-from" type="datetime-local" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">To</label>
+                <input class="form-control" id="filter-to" type="datetime-local" />
+              </div>
+              <button class="btn btn-ghost" id="filter-apply-btn">Apply</button>
+              <button class="btn btn-ghost" id="filter-reset-btn">Reset</button>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Kind</th>
+                    <th>Card</th>
+                    <th>Stall</th>
+                    <th>Tokens</th>
+                    <th>Staff</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-tbody">
+                  <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--clr-text-3)">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── EXPORT ── -->
+          <div id="section-export" class="hidden">
+            <h2 class="mb-3">📥 Export Data</h2>
+            <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+              <div class="card">
+                <div class="card-icon" style="margin-bottom:1rem">📋</div>
+                <h3>Full Ledger CSV</h3>
+                <p style="margin:0.5rem 0 1rem;font-size:0.85rem">All transactions — top-ups, spends, refunds, reversals.</p>
+                <button class="btn btn-primary" id="export-ledger-btn">⬇️ Download Ledger CSV</button>
+              </div>
+              <div class="card">
+                <div class="card-icon" style="margin-bottom:1rem">🏆</div>
+                <h3>Per-Stall Totals CSV</h3>
+                <p style="margin:0.5rem 0 1rem;font-size:0.85rem">Total tokens earned, rupee value, and transaction count per stall.</p>
+                <button class="btn btn-primary" id="export-stalls-btn">⬇️ Download Stall Totals CSV</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── SETTINGS ── -->
+          <div id="section-settings" class="hidden">
+            <h2 class="mb-3">⚙️ Settings</h2>
+            <div class="card" style="max-width:460px">
+              <div class="form-group">
+                <label class="form-label" for="setting-token-value">Token Value</label>
+                <div class="flex items-center gap-1">
+                  <span style="color:var(--clr-text-2);font-size:0.9rem">1 token =</span>
+                  <input class="form-control" id="setting-token-value" type="number" min="1" style="max-width:100px" value="1" />
+                  <span style="color:var(--clr-text-2);font-size:0.9rem">₹</span>
+                </div>
+                <div class="form-hint">How many rupees is 1 token worth?</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-refund-policy">Refund Policy Note</label>
+                <input class="form-control" id="setting-refund-policy" type="text" placeholder="e.g. Refunds only at closing ceremony" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dashboard Visibility</label>
+                <div class="flex gap-2 mt-1">
+                  <label style="display:flex;align-items:center;gap:0.4rem;color:var(--clr-text-2);font-size:0.9rem">
+                    <input type="radio" name="dash-vis" id="dash-public" value="public" />
+                    Public (no login)
+                  </label>
+                  <label style="display:flex;align-items:center;gap:0.4rem;color:var(--clr-text-2);font-size:0.9rem">
+                    <input type="radio" name="dash-vis" id="dash-private" value="private" checked />
+                    Private (staff login)
+                  </label>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="save-settings-btn">Save Settings</button>
+            </div>
+          </div>
+
+        </div><!-- /admin-content -->
+      </div><!-- /admin-layout -->
+    </div>
+  </div>
+
+  <!-- Stall Modal -->
+  <div class="modal-backdrop hidden" id="stall-modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="stall-modal-title">Add Stall</h3>
+      </div>
+      <div id="stall-modal-alert"></div>
+      <div class="form-group">
+        <label class="form-label" for="stall-modal-name">Stall Name</label>
+        <input class="form-control" id="stall-modal-name" type="text" placeholder="e.g. Biryani Corner" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="stall-modal-assign">Assign Volunteer (optional)</label>
+        <select class="form-control" id="stall-modal-assign">
+          <option value="">— Unassigned —</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="stall-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="stall-modal-save">
+          <span id="stall-modal-spinner" class="spinner hidden"></span>
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reverse Ledger Entry Modal -->
+  <div class="modal-backdrop hidden" id="reverse-modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🔄 Reverse Transaction</h3>
+      </div>
+      <p style="font-size:0.85rem;margin-bottom:1rem;color:var(--clr-text-3)">
+        This will create a new correcting ledger entry. The original entry is never deleted.
+      </p>
+      <div id="reverse-entry-info" class="alert alert-info mb-2"></div>
+      <div class="form-group">
+        <label class="form-label" for="reverse-reason">Reason for Reversal</label>
+        <input class="form-control" id="reverse-reason" type="text" placeholder="e.g. Accidental double charge" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="reverse-modal-cancel">Cancel</button>
+        <button class="btn btn-danger" id="reverse-modal-confirm">
+          <span id="reverse-spinner" class="spinner hidden"></span>
+          Confirm Reversal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/pages/admin.js"></script>
+</body>
+</html>

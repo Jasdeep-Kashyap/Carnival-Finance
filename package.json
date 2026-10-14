@@ -1,0 +1,21 @@
+{
+  "name": "dunes-carnival",
+  "version": "1.0.0",
+  "description": "Real-time token revenue system for Dunes Carnival",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
+    "@zxing/browser": "^0.2.1",
+    "chart.js": "^4.5.1",
+    "html5-qrcode": "^2.3.8",
+    "qrcode": "^1.5.4"
+  }
+}

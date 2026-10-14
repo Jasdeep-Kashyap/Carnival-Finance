@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stall — Dunes Carnival</title>
+  <meta name="description" content="Stall volunteer charge page for Dunes Carnival token wallet system." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-logo">
+        <span class="logo-dot"></span>
+        <span>Dunes Carnival</span>
+      </div>
+      <div class="navbar-actions">
+        <span class="navbar-role" id="stall-name-badge">Stall</span>
+        <button class="btn btn-ghost btn-sm" id="signout-btn">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page" style="padding:1.5rem 0 4rem">
+    <div class="container-sm">
+
+      <!-- STALL INFO BAR -->
+      <div class="stat-grid mb-3" style="grid-template-columns:1fr 1fr">
+        <div class="stat-card">
+          <div class="stat-label">Stall Earned</div>
+          <div class="stat-value brand" id="stall-balance">—</div>
+          <div class="stat-sub">tokens today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Transactions</div>
+          <div class="stat-value" id="stall-txn-count">—</div>
+          <div class="stat-sub">charges made</div>
+        </div>
+      </div>
+
+      <div id="stall-alert"></div>
+
+      <!-- ── SCAN SCREEN ── -->
+      <div id="screen-scan" class="card">
+        <div class="card-header">
+          <div class="card-icon">📷</div>
+          <div><h3>Scan Attendee Card</h3><p style="font-size:0.8rem">Point camera at QR code</p></div>
+        </div>
+        <div style="text-align:center">
+          <div id="scanner-container" style="margin:0 auto 1rem">
+            <video id="stall-video" style="width:100%;height:100%;object-fit:cover;display:none"></video>
+            <canvas id="stall-canvas" style="display:none"></canvas>
+            <div class="scanner-overlay">
+              <div class="scanner-frame"></div>
+            </div>
+            <div id="scanner-placeholder" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--clr-text-3);flex-direction:column;gap:0.5rem">
+              <span style="font-size:2.5rem">📷</span>
+              <span style="font-size:0.85rem">Camera not started</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-lg" id="start-scan-btn">📷 Scan Card</button>
+
+          <div class="divider-text mt-3"><span>or enter code manually</span></div>
+
+          <div class="flex gap-1 mt-1">
+            <input class="form-control" id="manual-code" type="text" placeholder="CARD-XXXX" style="text-transform:uppercase;letter-spacing:0.05em" />
+            <button class="btn btn-ghost" id="manual-lookup-btn">Go</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AMOUNT SCREEN ── -->
+      <div id="screen-amount" class="card hidden">
+        <div class="card-header">
+          <div class="card-icon">💳</div>
+          <div>
+            <h3 id="amount-card-code">CARD-XXXX</h3>
+            <p style="font-size:0.8rem">Balance: <strong id="amount-balance" class="text-brand">—</strong></p>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="amount-back-btn" style="margin-left:auto">← Back</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select Amount (₹)</label>
+          <div class="amount-grid" id="stall-amounts">
+            <button type="button" class="amount-btn" data-amount="10">₹10</button>
+            <button type="button" class="amount-btn" data-amount="20">₹20</button>
+            <button type="button" class="amount-btn" data-amount="50">₹50</button>
+            <button type="button" class="amount-btn" data-amount="100">₹100</button>
+            <button type="button" class="amount-btn" data-amount="150">₹150</button>
+            <button type="button" class="amount-btn" data-amount="200">₹200</button>
+          </div>
+          <input class="form-control mt-1" id="stall-custom-amount" type="number" min="1" placeholder="Custom amount (₹)" />
+        </div>
+
+        <button class="btn btn-primary btn-lg w-full mt-1" id="proceed-to-confirm-btn" disabled>Proceed to Confirm →</button>
+      </div>
+
+      <!-- ── CONFIRM SCREEN ── -->
+      <div id="screen-confirm" class="hidden">
+        <div class="confirm-card">
+          <p style="color:var(--clr-text-3);font-size:0.85rem">Charging from</p>
+          <div style="font-size:1.1rem;font-weight:700;margin:0.25rem 0" id="confirm-card-code">CARD-XXXX</div>
+          <div class="confirm-amount" id="confirm-amount">₹50</div>
+          <p class="confirm-from" id="confirm-stall-name">to Stall Name</p>
+
+          <div style="display:grid;gap:0.75rem">
+            <button class="btn btn-primary btn-xl" id="confirm-charge-btn">
+              <span id="charge-spinner" class="spinner hidden"></span>
+              ✓ Confirm Charge
+            </button>
+            <button class="btn btn-ghost" id="confirm-cancel-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SUCCESS SCREEN ── -->
+      <div id="screen-success" class="hidden">
+        <div class="success-screen">
+          <div class="success-icon">✅</div>
+          <h2>Charge Successful!</h2>
+          <div class="success-balances mt-2">
+            <div class="balance-box">
+              <div class="balance-label">Attendee Balance</div>
+              <div class="balance-val" id="success-attendee-bal">—</div>
+            </div>
+            <div class="balance-box">
+              <div class="balance-label">Stall Earned</div>
+              <div class="balance-val" id="success-stall-bal">—</div>
+            </div>
+          </div>
+
+          <!-- Undo bar -->
+          <div class="undo-bar" id="undo-bar">
+            <div style="flex:1">
+              <div style="font-size:0.85rem;font-weight:600;color:var(--clr-text)">⚠️ Undo last charge?</div>
+              <div class="undo-timer" id="undo-timer-text">30s remaining</div>
+              <div class="undo-progress mt-1">
+                <div class="undo-progress-bar" id="undo-progress-bar"></div>
+              </div>
+            </div>
+            <button class="btn btn-warn btn-sm" id="undo-btn" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:var(--clr-warn)">Undo</button>
+          </div>
+
+          <button class="btn btn-primary mt-2" id="next-charge-btn">Scan Next Card →</button>
+        </div>
+      </div>
+
+      <!-- ── ERROR SCREEN ── -->
+      <div id="screen-error" class="card hidden" style="text-align:center;padding:2rem">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem" id="error-icon">❌</div>
+        <h3 id="error-title">Error</h3>
+        <p id="error-message" style="margin:0.5rem 0 1.5rem"></p>
+        <button class="btn btn-primary" id="error-retry-btn">Try Again</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/pages/stall.js"></script>
+</body>
+</html>

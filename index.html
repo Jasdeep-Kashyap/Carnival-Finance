@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dunes Carnival — Token Revenue System</title>
+  <meta name="description" content="Real-time token wallet system for Dunes Carnival. Staff login portal." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎡</text></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div class="page login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="logo-emoji">🎡</div>
+        <h1>Dunes Carnival</h1>
+        <p>Token Revenue System — Staff Portal</p>
+      </div>
+
+      <div id="alert-area"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-control" id="email" type="email" placeholder="staff@carnival.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-control" id="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <button class="btn btn-primary btn-xl mt-2" id="login-btn" type="submit">
+          <span id="login-spinner" class="spinner hidden"></span>
+          Sign In
+        </button>
+      </form>
+
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/pages/login.js"></script>
+</body>
+</html>

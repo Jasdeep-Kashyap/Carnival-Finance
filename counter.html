@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Counter — Dunes Carnival</title>
+  <meta name="description" content="Top-up counter for Dunes Carnival token wallet system." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏧</text></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar no-print">
+    <div class="navbar-inner">
+      <div class="navbar-logo">
+        <span class="logo-dot"></span>
+        <span>Dunes Carnival</span>
+      </div>
+      <div class="navbar-actions">
+        <span class="navbar-role" id="user-role-badge">Counter</span>
+        <button class="btn btn-ghost btn-sm" id="signout-btn">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page" style="padding:1.5rem 0 4rem">
+    <div class="container-md">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="card-icon">🏧</div>
+        <div>
+          <h1>Top-up Counter</h1>
+          <p style="font-size:0.85rem">Create cards, top up balances, process refunds</p>
+        </div>
+      </div>
+
+      <!-- Tab nav -->
+      <div class="tabs" id="counter-tabs">
+        <button class="tab-btn active" data-tab="tab-create" id="tab-create-btn">🆕 New Card</button>
+        <button class="tab-btn" data-tab="tab-topup" id="tab-topup-btn">⬆️ Top Up</button>
+        <button class="tab-btn" data-tab="tab-refund" id="tab-refund-btn">↩️ Refund</button>
+        <button class="tab-btn" data-tab="tab-history" id="tab-history-btn">📋 History</button>
+      </div>
+
+      <!-- ── CREATE NEW CARD ── -->
+      <div class="tab-panel active" id="tab-create">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🆕</div>
+            <div><h3>Create New Card</h3><p style="font-size:0.8rem">Issue a QR token card to a new attendee</p></div>
+          </div>
+
+          <div id="create-alert"></div>
+
+          <form id="create-form">
+            <div class="form-group">
+              <label class="form-label" for="create-name">Attendee Name (optional)</label>
+              <input class="form-control" id="create-name" type="text" placeholder="e.g. Riya Sharma" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Initial Tokens (₹)</label>
+              <div class="amount-grid" id="create-amounts">
+                <button type="button" class="amount-btn" data-amount="10">₹10</button>
+                <button type="button" class="amount-btn" data-amount="20">₹20</button>
+                <button type="button" class="amount-btn" data-amount="50">₹50</button>
+                <button type="button" class="amount-btn" data-amount="100">₹100</button>
+                <button type="button" class="amount-btn" data-amount="200">₹200</button>
+                <button type="button" class="amount-btn" data-amount="500">₹500</button>
+              </div>
+              <input class="form-control mt-1" id="create-custom" type="number" min="1" placeholder="Custom amount (₹)" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="create-payment">Payment Method</label>
+                <select class="form-control" id="create-payment">
+                  <option value="cash">💵 Cash</option>
+                  <option value="upi">📱 UPI</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="create-upi-ref">UPI Reference (optional)</label>
+                <input class="form-control" id="create-upi-ref" type="text" placeholder="UPI transaction ID" />
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-full" id="create-btn" type="submit">
+              <span id="create-spinner" class="spinner hidden"></span>
+              Create Card & Generate QR
+            </button>
+          </form>
+        </div>
+
+        <!-- QR Result -->
+        <div class="card mt-2 hidden" id="create-result">
+          <div class="card-header">
+            <div class="card-icon">✅</div>
+            <h3>Card Created!</h3>
+          </div>
+          <div class="qr-wrap">
+            <div class="qr-canvas" id="create-qr-canvas"></div>
+            <div class="qr-code-text" id="create-code-display"></div>
+            <p style="font-size:0.8rem;color:var(--clr-text-3);margin-top:0.25rem">Share or print this QR card</p>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <button class="btn btn-ghost" id="print-card-btn" onclick="window.print()">🖨️ Print Card</button>
+            <button class="btn btn-ghost" id="create-another-btn">✨ Create Another</button>
+          </div>
+          <!-- Printable card (visible only on print) -->
+          <div class="print-only print-card" id="print-card-area">
+            <h2 style="font-size:18px;margin-bottom:6px">🎡 Dunes Carnival</h2>
+            <div id="print-qr-canvas" style="margin:8px auto;display:inline-block"></div>
+            <p id="print-code-text" style="font-family:monospace;font-size:14px;letter-spacing:2px;margin:4px 0"></p>
+            <p id="print-name-text" style="font-size:13px;color:#555"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TOP UP ── -->
+      <div class="tab-panel" id="tab-topup">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">⬆️</div>
+            <div><h3>Top Up Existing Card</h3><p style="font-size:0.8rem">Add tokens to an attendee's wallet</p></div>
+          </div>
+
+          <div id="topup-alert"></div>
+
+          <!-- Step 1: Find card -->
+          <div id="topup-step1">
+            <div class="form-group">
+              <label class="form-label" for="topup-code">Card Code or Scan QR</label>
+              <div class="flex gap-1">
+                <input class="form-control" id="topup-code" type="text" placeholder="CARD-XXXX or scan below" style="text-transform:uppercase" />
+                <button class="btn btn-ghost" id="topup-scan-btn" type="button">📷 Scan</button>
+              </div>
+            </div>
+            <div id="topup-scanner-wrap" class="hidden">
+              <div id="topup-scanner"></div>
+              <button class="btn btn-ghost btn-sm mt-1" id="topup-stop-scan">Stop Camera</button>
+            </div>
+            <button class="btn btn-primary" id="topup-lookup-btn" type="button">Look Up Card</button>
+          </div>
+
+          <!-- Step 2: Add tokens -->
+          <div id="topup-step2" class="hidden">
+            <div class="alert alert-info mb-2">
+              <span>💳</span>
+              <div>
+                <strong id="topup-card-code"></strong>
+                <span id="topup-card-name" style="color:var(--clr-text-3);font-size:0.85rem"></span><br/>
+                Current balance: <strong id="topup-current-balance" class="text-brand"></strong>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Add Tokens (₹)</label>
+              <div class="amount-grid" id="topup-amounts">
+                <button type="button" class="amount-btn" data-amount="10">₹10</button>
+                <button type="button" class="amount-btn" data-amount="20">₹20</button>
+                <button type="button" class="amount-btn" data-amount="50">₹50</button>
+                <button type="button" class="amount-btn" data-amount="100">₹100</button>
+                <button type="button" class="amount-btn" data-amount="200">₹200</button>
+                <button type="button" class="amount-btn" data-amount="500">₹500</button>
+              </div>
+              <input class="form-control mt-1" id="topup-custom" type="number" min="1" placeholder="Custom amount (₹)" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="topup-payment">Payment Method</label>
+                <select class="form-control" id="topup-payment">
+                  <option value="cash">💵 Cash</option>
+                  <option value="upi">📱 UPI</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="topup-upi-ref">UPI Reference (optional)</label>
+                <input class="form-control" id="topup-upi-ref" type="text" placeholder="UPI transaction ID" />
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button class="btn btn-ghost" id="topup-back-btn">← Back</button>
+              <button class="btn btn-primary" id="topup-confirm-btn">
+                <span id="topup-spinner" class="spinner hidden"></span>
+                Confirm Top Up
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Result -->
+          <div id="topup-step3" class="hidden">
+            <div class="success-screen">
+              <div class="success-icon">✅</div>
+              <h2>Top Up Successful!</h2>
+              <div class="success-balances mt-2">
+                <div class="balance-box">
+                  <div class="balance-label">Added</div>
+                  <div class="balance-val" id="topup-added"></div>
+                </div>
+                <div class="balance-box">
+                  <div class="balance-label">New Balance</div>
+                  <div class="balance-val" id="topup-new-balance"></div>
+                </div>
+              </div>
+              <button class="btn btn-ghost" id="topup-reset-btn">Top Up Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REFUND ── -->
+      <div class="tab-panel" id="tab-refund">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">↩️</div>
+            <div><h3>Refund Unused Tokens</h3><p style="font-size:0.8rem">Return tokens as cash/UPI</p></div>
+          </div>
+
+          <div id="refund-alert"></div>
+
+          <!-- Step 1 -->
+          <div id="refund-step1">
+            <div class="form-group">
+              <label class="form-label" for="refund-code">Card Code or Scan QR</label>
+              <div class="flex gap-1">
+                <input class="form-control" id="refund-code" type="text" placeholder="CARD-XXXX" style="text-transform:uppercase" />
+                <button class="btn btn-ghost" id="refund-scan-btn" type="button">📷 Scan</button>
+              </div>
+            </div>
+            <div id="refund-scanner-wrap" class="hidden">
+              <div id="refund-scanner"></div>
+              <button class="btn btn-ghost btn-sm mt-1" id="refund-stop-scan">Stop Camera</button>
+            </div>
+            <button class="btn btn-primary" id="refund-lookup-btn">Look Up Card</button>
+          </div>
+
+          <!-- Step 2 -->
+          <div id="refund-step2" class="hidden">
+            <div class="alert alert-info mb-2">
+              <span>💳</span>
+              <div>
+                <strong id="refund-card-code"></strong>
+                <br/>Current balance: <strong id="refund-current-balance" class="text-success"></strong>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Refund Amount (₹)</label>
+              <div class="amount-grid" id="refund-amounts">
+                <button type="button" class="amount-btn" data-amount="10">₹10</button>
+                <button type="button" class="amount-btn" data-amount="20">₹20</button>
+                <button type="button" class="amount-btn" data-amount="50">₹50</button>
+                <button type="button" class="amount-btn" data-amount="100">₹100</button>
+                <button type="button" class="amount-btn" data-amount="200">₹200</button>
+                <button type="button" class="amount-btn refund-all-btn" id="refund-all-btn">All</button>
+              </div>
+              <input class="form-control mt-1" id="refund-custom" type="number" min="1" placeholder="Custom amount (₹)" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="refund-payment">Refund Via</label>
+              <select class="form-control" id="refund-payment">
+                <option value="cash">💵 Cash</option>
+                <option value="upi">📱 UPI</option>
+              </select>
+            </div>
+
+            <div class="flex gap-2">
+              <button class="btn btn-ghost" id="refund-back-btn">← Back</button>
+              <button class="btn btn-danger" id="refund-confirm-btn">
+                <span id="refund-spinner" class="spinner hidden"></span>
+                Confirm Refund
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div id="refund-step3" class="hidden">
+            <div class="success-screen">
+              <div class="success-icon">↩️</div>
+              <h2>Refund Processed!</h2>
+              <div class="success-balances mt-2">
+                <div class="balance-box">
+                  <div class="balance-label">Refunded</div>
+                  <div class="balance-val" id="refund-amount-show"></div>
+                </div>
+                <div class="balance-box">
+                  <div class="balance-label">Remaining Balance</div>
+                  <div class="balance-val" id="refund-new-balance"></div>
+                </div>
+              </div>
+              <button class="btn btn-ghost" id="refund-reset-btn">Process Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HISTORY ── -->
+      <div class="tab-panel" id="tab-history">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">📋</div>
+            <div><h3>Recent Activity</h3><p style="font-size:0.8rem">Last 20 top-ups and refunds at this counter</p></div>
+          </div>
+          <div id="history-list" class="feed-list">
+            <div style="text-align:center;padding:2rem;color:var(--clr-text-3)">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /container -->
+  </div><!-- /page -->
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/pages/counter.js"></script>
+</body>
+</html>
